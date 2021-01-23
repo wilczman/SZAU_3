@@ -1,0 +1,38 @@
+clear all;
+x(1,:) = -5:0.1:5;
+x(2,:) = -5:0.1:5;
+% [x1,x2] = meshgrid(x,y);
+% y = (x1.^2+x2-11).^2+(x1+x2.^2-7).^2;
+fitnessfcn = @(x)(x(1)^2+x(2)-11)^2+(x(1)+x(2)^2-7)^2 ;
+nvars = 2 ;
+
+
+options.PopInitRange=[-32.768; 32.768];
+problem.options.KnownMin=[0,0];
+
+problem.options = options;
+problem.Aineq = []; problem.bineq =[];
+problem.Aeq=[]; problem.beq =[];
+problem.LB=[]; problem.UB=[];
+problem.fitnessfcn.nonIcon = [] ;
+problem.nonlcon = [] ;
+
+problem.fitnessfcn = fitnessfcn;
+problem.nvars =2; 
+
+problem.options.DemoMode='pretty';
+problem.options.PlotFcns={@psoplotbestf,@psoplotswarmsurf};
+% problem.options.PlotFcns={@psoplotbestf};
+% problem.options.Display = 'iter';
+problem.options.Generations = 100;
+[x_return,fmin] = pso(problem)
+fitnessfcn(x_return)
+x1 = x_return(1)
+testval = (x1.^2+x2-11).^2+(x1+x2.^2-7).^2
+% problem
+% problem.options
+
+% fitnessfcn = @(x)(x(1)^2+x(2)-11)^2+(x(1)+x(2)^2-7)^2 ;
+% nvars = 2 ;
+% x_return = pso(fitnessfcn,nvars)
+% y = (x_return(1)^2+x_return(2)-11)^2+(x_return(1)+x_return(2)^2-7)^2
