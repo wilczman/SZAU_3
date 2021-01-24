@@ -28,10 +28,6 @@ elseif strcmp(algorytm, 'NPL')
     N = round(pso_scale*parameters(1));
     Nu = round(pso_scale*parameters(2));
     lambda = parameters(3);
-    if N<=0 || Nu<=0 || lambda <=0
-       wskaznik_jakosci = 10^3; 
-       return
-    end
 end
 
 
@@ -227,8 +223,7 @@ for k=6:kk
         %%%---obliczenie sterowania---%%%
         deltaU=K*(Yzad(:,k)-y_zero);
         if size(deltaU,1) < 1
-           fprintf('N=%d, Nu=%f, lambda=%f',N, Nu, lambda)
-           disp(deltaU)
+           fprintf('N=%d, Nu=%, lambda=%f'N)
            
         end
         delta_u=deltaU(1);

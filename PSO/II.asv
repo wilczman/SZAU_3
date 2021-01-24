@@ -10,7 +10,7 @@ beta1 = 0.016447;
 beta2 = 0.012722;
 
 global pso_scale;
-pso_scale=1;
+pso_scale=0.1;
 %wybor algorytmu
 global algorytm;
 algorytm='NPL'; %GPC NPL PID oraz NO, ktory nie dziala
@@ -18,11 +18,11 @@ algorytm='NPL'; %GPC NPL PID oraz NO, ktory nie dziala
 if strcmp (algorytm, 'NPL')
     global w10 w1 w20 w2;
     model8              %wczytanie modelu
-    lb=[5/pso_scale; 5/pso_scale; 2];
-    popinit = [[5;20],[5;20], [5;20]]; %[15/pso_scale; 5/pso_scale; 3];
+    lb=[5/pso_scale; 5/pso_scale; 0.2]; [[5;],[-1;2]]
+    popinit = [15/pso_scale; 5/pso_scale; 3];
 elseif strcmp(algorytm, 'PID')
     lb=[];
-    popinit =[[-10;5],[0;20], [0;5]];% [-0.6; 10; 0.5];
+    popinit = [-0.6; 10; 0.5];
 end
 global u y; %do podgl¹du ostatecznych wartoœci
 global kk; kk = 800;
@@ -81,8 +81,8 @@ if strcmp(algorytm, 'PID')
     filename = sprintf('%s__K=%.2f__Ti=%d__Td=%.2f', algorytm, K, Ti, Td);
     filename = strrep(filename,'.',',');
 else
-    N = round(x_return(1)*pso_scale);
-    Nu = round(x_return(2)*pso_scale);
+    N=x_return(1)*pso_scale;
+    Nu=x_return(2)*pso_scale;
     lambda=x_return(3);
     str2 = sprintf('N=%d  Nu=%d  lambda=%d', N, Nu, lambda);
     filename = sprintf('%s__N=%d__Nu=%d__l=%d', algorytm, N, Nu, lambda);
