@@ -8,7 +8,7 @@ na = 2;
 nb = 5;
 
 %czas trwania symulacji
-global kk; 
+global kk;
 
 %wybor algorytmu
 global algorytm;
@@ -28,6 +28,10 @@ elseif strcmp(algorytm, 'NPL')
     N = round(pso_scale*parameters(1));
     Nu = round(pso_scale*parameters(2));
     lambda = parameters(3);
+    if N<=0 || Nu<=0 || lambda <=0
+        wskaznik_jakosci = 10^3;
+        return
+    end
 end
 
 
@@ -50,12 +54,16 @@ global yzad;
 
 ymod     = zeros(1,kk); %wyjscie modelu
 ymod_lin = zeros(1,kk); %wyjscie modelu zlinearyzowanego
-y_zero   = zeros(N,1);  %trajektoria swobodna
+
 x1 = zeros(1,kk);       %x1
 x2 = zeros(1,kk);       %x2
-s  = zeros(1,N);        %odpowiedz skokowa
-I  = eye(Nu);
-Yzad=yzad.*ones(N,1);
+
+if strcmp(algorytm, 'NPL')
+    y_zero   = zeros(N,1);  %trajektoria swobodna
+    s  = zeros(1,N);        %odpowiedz skokowa
+    I  = eye(Nu);
+    Yzad=yzad.*ones(N,1);
+end
 
 %ograniczenia
 u_min = -1;
@@ -137,19 +145,24 @@ for k=6:kk
         d=y(k)-ymod(k);
         
         if strcmp(algorytm, 'NO')
-%             u0 = u(k-1)*ones(1,Nu);
-%             opcje = optimset('Algorithm','sqp', 'Display', 'off', 'TolFun',1e-10,'TolX',1e-10);
-%             uopt = fmincon(@fun, u0, [],[],[],[], umin_opt, umax_opt, [], opcje);
-%             drawnow;
-%             u(k)=uopt(1);
+            %             u0 = u(k-1)*ones(1,Nu);
+            %             opcje = optimset('Algorithm','sqp', 'Display', 'off', 'TolFun',1e-10,'TolX',1e-10);
+            %             uopt = fmincon(@fun, u0, [],[],[],[], umin_opt, umax_opt, [], opcje);
+            %             drawnow;
+            %             u(k)=uopt(1);
         elseif strcmp(algorytm, 'NPL')
             %%%---trajektoria swobodna---%%%
             wesn = [u(k-3) u(k-4) y(k) y(k-1)]';
             y_zero(1) = w20+w2*tanh(w10+w1*wesn) + d;
+            if N>=2
             wesn = [u(k-2) u(k-3) y_zero(1) y(k)]';
             y_zero(2) = w20+w2*tanh(w10+w1*wesn) + d;
+            end
+            if N>=3
             wesn = [u(k-1) u(k-2) y_zero(2) y_zero(1)]';
             y_zero(3) = w20+w2*tanh(w10+w1*wesn) + d;
+            end
+            if N>=4
             for i=4:N
                 wesn = [u(k-1) u(k-1) y_zero(i-1) y_zero(i-2)]';
                 y_zero(i) = w20+w2*tanh(w10+w1*wesn) + d;
@@ -214,17 +227,45 @@ for k=6:kk
             %%%-----------GPC------------%%%
             %%%---trajektoria swobodna---%%%
             y_zero(1) = b(4)*u(k-3) + b(5)*u(k-4) + a(1)*y(k) + a(2)*y(k-1) + d;
-            y_zero(2) = b(4)*u(k-2) + b(5)*u(k-3) + a(1)*y_zero(1) + a(2)*y(k) + d;
-            y_zero(3) = b(4)*u(k-1) + b(5)*u(k-2) + a(1)*y_zero(2) + a(2)*y_zero(1) + d;
-            for i=4:N
-                y_zero(i) = b(4)*u(k-1) + b(5)*u(k-2) + a(1)*y_zero(i-1) + a(2)*y_zero(i-2) + d;
+            if N>=2
+                y_zero(2) = b(4)*u(k-2) + b(5)*u(k-3) + a(1)*y_zero(1) + a(2)*y(k) + d;
+            end
+            if N>=3
+                y_zero(3) = b(4)*u(k-1) + b(5)*u(k-2) + a(1)*y_zero(2) + a(2)*y_zero(1) + d;
+            end
+            if N>=4
+                for i=4:N
+                    y_zero(i) = b(4)*u(k-1) + b(5)*u(k-2) + a(1)*y_zero(i-1) + a(2)*y_zero(i-2) + d;
+                end
             end
         end
         %%%---obliczenie sterowania---%%%
+        if size(Yzad(:,k),1)~=size(y_zero,1)
+            disp('Pierwszy wymiar')
+            fprintf('N=%d, Nu=%f, lambda=%f',N, Nu, lambda)
+            
+            disp('Yzad'); disp(size(Yzad));
+            disp('y_zero'); disp(size(y_zero));
+        end
+%         if size(Yzad(:,k),2)~=size(y_zero,2)
+%             disp('Drugi wymiar')
+%             fprintf('N=%d, Nu=%f, lambda=%f',N, Nu, lambda)
+%             
+%             disp('Yzad'); disp(size(Yzad));
+%             disp('y_zero'); disp(size(y_zero));
+%         end
+        if size(K,2)~=size((Yzad(:,k)-y_zero),1)
+            fprintf('N=%d, Nu=%f, lambda=%f',N, Nu, lambda)
+            disp('K'); disp(K);
+            disp('Yzad'); disp(Yzad);
+            disp('y_zero'); disp(y_zero);
+            %fprintf('=%d, Nu=%f, lambda=%f',N, Nu, lambda)
+        end
         deltaU=K*(Yzad(:,k)-y_zero);
         if size(deltaU,1) < 1
-           fprintf('N=%d, Nu=%, lambda=%f'N)
-           
+            fprintf('N=%d, Nu=%f, lambda=%f',N, Nu, lambda)
+            disp(deltaU)
+            
         end
         delta_u=deltaU(1);
         u(k)=u(k-1)+delta_u;
