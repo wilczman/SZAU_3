@@ -1,4 +1,4 @@
-function wskaznik_jakosci = PID_fun(parameters)
+function wskaznik_jakosci = PID_NPL_fun(parameters)
 
 
 global alfa1 alfa2 beta1 beta2;

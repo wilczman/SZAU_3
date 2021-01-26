@@ -72,7 +72,7 @@ problem.Aeq=[]; problem.beq =[];
 problem.LB=lb; problem.UB=[];
 problem.fitnessfcn.nonIcon = [] ;
 problem.nonlcon = [] ;
-problem.fitnessfcn = @PID_fun;%fitnessfcn;
+problem.fitnessfcn = @PID_NPL_fun;%fitnessfcn;
 problem.nvars = nvars; 
 problem.options.DemoMode='pretty';
 problem.options.PlotFcns={@psoplotbestf};%,@psoplotswarmsurf};
